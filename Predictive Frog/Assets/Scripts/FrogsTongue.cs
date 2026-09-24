@@ -101,6 +101,6 @@ public class FrogsTongue : MonoBehaviour
 
     private void OnTongueHitTarget()
     {
-        Debug.Log($"Língua atingiu a posição prevista: {destination}");
+        
     }
 }

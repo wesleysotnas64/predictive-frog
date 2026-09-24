@@ -58,7 +58,6 @@ public class CandySpawnController : MonoBehaviour
     {
         if (candyPrefab == null)
         {
-            Debug.LogError("CandyPrefab não foi atribuído no CandySpawnController!");
             return;
         }
 

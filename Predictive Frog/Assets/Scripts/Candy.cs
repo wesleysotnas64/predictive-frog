@@ -102,7 +102,6 @@ public class Candy : MonoBehaviour
 
     private void CollectCandy()
     {
-        Debug.Log("Doce coletado pela formiga!");
         Destroy(gameObject);
     }
 }
