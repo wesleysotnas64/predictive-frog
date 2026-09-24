@@ -24,6 +24,13 @@ public class PlayerMove : MonoBehaviour
 
     private void Move()
     {
+        // Trava de Movimentação: Se o jogo estiver aguardando o Enter (WaitingToStart) ou em Game Over, interrompe o movimento
+        if (GameLoopManager.Instance != null && !GameLoopManager.Instance.CanPlayerMove())
+        {
+            direction = Vector2.zero;
+            return;
+        }
+
         direction = Vector2.zero;
 
         if (keyboard.wKey.isPressed) direction.y += 1;
@@ -35,13 +42,13 @@ public class PlayerMove : MonoBehaviour
 
         transform.position += new Vector3(direction.x, direction.y, 0) * Time.deltaTime * speed;
 
-        // Apply vertical limits
+        // Aplica limites verticais
         if (transform.position.y > upLimit)
             transform.position = new Vector3(transform.position.x, upLimit, transform.position.z);
         if (transform.position.y < downLimit)
             transform.position = new Vector3(transform.position.x, downLimit, transform.position.z);
 
-        // Apply horizontal limits
+        // Aplica limites horizontais
         if (transform.position.x > horizontalLimit)
             transform.position = new Vector3(horizontalLimit, transform.position.y, transform.position.z);
         if (transform.position.x < -horizontalLimit)

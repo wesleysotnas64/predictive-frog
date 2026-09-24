@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
@@ -14,18 +15,128 @@ public class UIController : MonoBehaviour
     [Tooltip("Texto MeshPro (Round Text) para exibir o número do round.")]
     [SerializeField] private TextMeshProUGUI roundText;
 
+    [Tooltip("Texto MeshPro para pontuação (ex: '0 pts').")]
+    [SerializeField] private TextMeshProUGUI scoreText;
+
+    [Tooltip("Texto MeshPro para vidas (ex: '3 ants').")]
+    [SerializeField] private TextMeshProUGUI livesText;
+
+    [Tooltip("Texto MeshPro dinâmico para indicar início de round e falas do Sapo.")]
+    [SerializeField] private TextMeshProUGUI pressEnterText;
+
     [Header("Configurações Acadêmicas/Animação")]
     [Tooltip("Tempo em segundos reservado para a simulação de aprendizado (re-treino da IA).")]
-    [SerializeField] private float learningDuration = 3.0f;
+    [SerializeField] public float learningDuration;
 
     private bool isLearningMode = false;
 
+    [Header("Diálogos do Sapo (Learning Phase)")]
+    private readonly string[] frogDialoguesMaster = new string[]
+    {
+        "Acha que pode escapar de mim? Estou analisando seus passos!",
+        "Hmm... você gosta de dobrar à esquerda, né? Anotado!",
+        "Processando seus dados... Sua tática não vai funcionar por muito tempo!",
+        "Estou calculando sua trajetória exata. Nenhuma formiga me engana!",
+        "Estudando seus movimentos... Você é bem previsível, sabia?",
+        "Carregando habilidades de caça... 99% concluído!",
+        "Analisando padrão de corrida... Próxima rodada você vira sobremesa!",
+        "Hummm, dados saborosos! Estou aprendendo cada truque seu.",
+        "Seu histórico de navegação diz que você vai para a direita... Acertei?",
+        "Ajustando minha pontaria... Da próxima vez, minha língua não erra!"
+    };
+
+    // Lista auxiliar para controlar o sorteio sem repetição
+    private List<string> remainingDialogues = new List<string>();
+
+    private void Awake()
+    {
+        ResetDialogueBag();
+    }
+
     /// <summary>
-    /// Atualiza a barra e o texto com base no tempo decorrido enviado pelo TimeSeriesDataCollector.
+    /// Repovoa a lista com todas as frases quando o "saco de sorteio" esvazia.
     /// </summary>
-    /// <param name="currentRoundTimer">Tempo atual decorrido no round (0 até totalRoundTime).</param>
-    /// <param name="totalRoundTime">Tempo total do round em segundos (ex: 10s).</param>
-    /// <param name="currentRound">Número do round atual.</param>
+    private void ResetDialogueBag()
+    {
+        remainingDialogues.Clear();
+        remainingDialogues.AddRange(frogDialoguesMaster);
+    }
+
+    /// <summary>
+    /// Sorteia e exibe uma frase sem repetição. 
+    /// Reseta e embaralha o conjunto apenas após todas as 10 serem exibidas.
+    /// </summary>
+    public void ShowFrogLearningDialogue()
+    {
+        if (pressEnterText == null) return;
+
+        // Se todas as frases já foram exibidas, repovoa o saco de sorteio
+        if (remainingDialogues.Count == 0)
+        {
+            ResetDialogueBag();
+            Debug.Log("===> Todas as frases do Sapo foram exibidas! Reiniciando ciclo de frases. <===");
+        }
+
+        // Sorteia um índice da lista de frases restantes
+        int randomIndex = Random.Range(0, remainingDialogues.Count);
+        string selectedDialogue = remainingDialogues[randomIndex];
+
+        // Remove a frase sorteada para não repetir
+        remainingDialogues.RemoveAt(randomIndex);
+
+        // Exibe na UI
+        pressEnterText.text = $"Sapo: \"{selectedDialogue}\"";
+        pressEnterText.gameObject.SetActive(true);
+    }
+
+    /// <summary>
+    /// Exibe a mensagem solicitando pressionar ENTER para iniciar o próximo round.
+    /// </summary>
+    public void ShowPressEnterMessage(int nextRound)
+    {
+        if (pressEnterText != null)
+        {
+            pressEnterText.text = $"Pressione ENTER para iniciar o Round {nextRound}";
+            pressEnterText.gameObject.SetActive(true);
+        }
+    }
+
+    /// <summary>
+    /// Esconde a mensagem central quando o round ativo começa.
+    /// </summary>
+    public void HidePressEnterMessage()
+    {
+        if (pressEnterText != null)
+        {
+            pressEnterText.gameObject.SetActive(false);
+        }
+    }
+
+    /// <summary>
+    /// Atualiza o texto da pontuação no formato "X pts".
+    /// </summary>
+    public void UpdateScoreUI(int points)
+    {
+        if (scoreText != null)
+        {
+            scoreText.text = $"{points} pts";
+        }
+    }
+
+    /// <summary>
+    /// Atualiza o texto de vidas no formato "X ants".
+    /// </summary>
+    public void UpdateLivesUI(int lives)
+    {
+        if (livesText != null)
+        {
+            livesText.text = $"{lives} ants";
+        }
+    }
+
+    /// <summary>
+    /// Atualiza a barra, o texto de tempo e o número do round atual.
+    /// </summary>
     public void UpdateRoundUI(float currentRoundTimer, float totalRoundTime, int currentRound)
     {
         if (roundText != null)
@@ -33,22 +144,17 @@ public class UIController : MonoBehaviour
             roundText.text = $"RND: {currentRound}";
         }
 
-        // Se estiver executando o ciclo de aprendizado, ignora atualizações do timer do round
         if (isLearningMode) return;
 
-        // Calcula o tempo restante (10.0s -> 0.0s)
         float timeRemaining = Mathf.Max(0f, totalRoundTime - currentRoundTimer);
 
-        // 1. Atualiza o texto com 2 casas decimais (Ex: "8.45s")
         if (timeAndLearningText != null)
         {
             timeAndLearningText.text = $"{timeRemaining:F2}s";
         }
 
-        // 2. Calcula a proporção normalizada [1.0 -> 0.0]
         float timeRatio = Mathf.Clamp01(timeRemaining / totalRoundTime);
 
-        // 3. Altera a escala X da BarTime
         if (barTime != null)
         {
             Vector3 scale = barTime.localScale;
@@ -56,21 +162,16 @@ public class UIController : MonoBehaviour
             barTime.localScale = scale;
         }
 
-        // Quando o tempo do round esgota (chega a 0.00s), dispara a fase de aprendizado
         if (timeRemaining <= 0f)
         {
             StartCoroutine(LearningPhaseRoutine());
         }
     }
 
-    /// <summary>
-    /// Corrotina que simula a fase de treino/aprendizado do modelo de IA.
-    /// </summary>
     private IEnumerator LearningPhaseRoutine()
     {
         isLearningMode = true;
 
-        // Atualiza o texto para informar a fase de processamento do modelo
         if (timeAndLearningText != null)
         {
             timeAndLearningText.text = "Learning...";
@@ -78,7 +179,6 @@ public class UIController : MonoBehaviour
 
         float elapsedTime = 0f;
 
-        // Anima a barra preenchendo de 0 a 1 em escala X durante 'learningDuration'
         while (elapsedTime < learningDuration)
         {
             elapsedTime += Time.deltaTime;
@@ -94,7 +194,6 @@ public class UIController : MonoBehaviour
             yield return null;
         }
 
-        // Garante a barra completamente cheia no final do treino
         if (barTime != null)
         {
             Vector3 scale = barTime.localScale;
@@ -103,14 +202,12 @@ public class UIController : MonoBehaviour
         }
 
         isLearningMode = false;
-        Debug.Log("Fase de aprendizado/re-treino concluída com sucesso!");
+
+        if (timeAndLearningText != null)
+        {
+            timeAndLearningText.text = "Ready!";
+        }
     }
 
-    /// <summary>
-    /// Retorna se o sistema está atualmente ocupado processando o aprendizado da IA.
-    /// </summary>
-    public bool IsLearning()
-    {
-        return isLearningMode;
-    }
+    public bool IsLearning() => isLearningMode;
 }

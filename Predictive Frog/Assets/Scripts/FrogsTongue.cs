@@ -5,20 +5,33 @@ public class FrogsTongue : MonoBehaviour
 {
     [Header("Configurações do Ataque")]
     [Tooltip("Tempo em segundos que a língua leva para ir, parar e voltar.")]
-    [SerializeField] private float timeSpeed = 0.4f;
+    [SerializeField] private float timeSpeed = 0.1f;
 
-    [Header("Referências Visuais")]
+    [Header("Referências Visuais e Componentes")]
     [SerializeField] private LineRenderer tongueLine;
     [SerializeField] private Transform mouthTransform;
+    [SerializeField] private CircleCollider2D tongueCollider;
 
     private Vector3 initialPosition;
     private Vector3 destination;
-
+    private bool hasHitPlayerThisAttack = false;
 
     private void Awake()
     {
         // Salva a posição inicial estática na boca do sapo
         initialPosition = transform.position;
+
+        // Se o colisor não foi atribuído via Inspector, tenta obter automaticamente
+        if (tongueCollider == null)
+        {
+            tongueCollider = GetComponent<CircleCollider2D>();
+        }
+
+        // Garante que o colisor inicie desativado
+        if (tongueCollider != null)
+        {
+            tongueCollider.enabled = false;
+        }
     }
 
     /// <summary>
@@ -27,7 +40,14 @@ public class FrogsTongue : MonoBehaviour
     public void LaunchAttack(Vector3 targetPosition)
     {
         destination = targetPosition;
+        hasHitPlayerThisAttack = false; // Reseta a flag para o novo ataque
         
+        // Desativa o colisor preventivamente no início do lançamento
+        if (tongueCollider != null)
+        {
+            tongueCollider.enabled = false;
+        }
+
         // Garante que o GameObject esteja ativo antes de iniciar a corrotina
         gameObject.SetActive(true);
         StartCoroutine(TongueAttackRoutine());
@@ -42,10 +62,10 @@ public class FrogsTongue : MonoBehaviour
             tongueLine.SetPosition(0, initialPosition);
             tongueLine.SetPosition(1, initialPosition);
             tongueLine.enabled = true;
-            mouthTransform.localScale = new Vector3(0.5f, 0.2f, 0.5f);
+            if (mouthTransform != null) mouthTransform.localScale = new Vector3(0.5f, 0.2f, 0.5f);
         }
 
-        // 1. FASE DE IDA
+        // 1. FASE DE IDA (SEM DANO - Colisor desativado)
         float elapsedTime = 0f;
         while (elapsedTime < timeSpeed)
         {
@@ -61,10 +81,21 @@ public class FrogsTongue : MonoBehaviour
         UpdateLineRenderer();
         OnTongueHitTarget();
 
-        // 2. FASE DE PAUSA (IMPACTO)
+        // 2. FASE DE PAUSA / IMPACTO (COM DANO - Colisor ativo)
+        if (tongueCollider != null)
+        {
+            tongueCollider.enabled = true;
+        }
+
         yield return new WaitForSeconds(timeSpeed);
 
-        // 3. FASE DE VOLTA
+        // Desativa o colisor logo ao término da fase de impacto
+        if (tongueCollider != null)
+        {
+            tongueCollider.enabled = false;
+        }
+
+        // 3. FASE DE VOLTA (SEM DANO - Colisor desativado)
         elapsedTime = 0f;
         while (elapsedTime < timeSpeed)
         {
@@ -86,8 +117,8 @@ public class FrogsTongue : MonoBehaviour
         }
 
         // Desativa o GameObject ao finalizar todo o ciclo
+        if (mouthTransform != null) mouthTransform.localScale = new Vector3(0.5f, 0.05f, 0.5f);
         gameObject.SetActive(false);
-        mouthTransform.localScale = new Vector3(0.5f, 0.05f, 0.5f);
     }
 
     private void UpdateLineRenderer()
@@ -101,6 +132,53 @@ public class FrogsTongue : MonoBehaviour
 
     private void OnTongueHitTarget()
     {
-        
+        // Método mantido para eventos adicionais no ponto de impacto, se necessário
     }
+
+    #region Colisões
+
+    // Para projetos 2D (Collider2D e Rigidbody2D)
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        HandlePlayerCollision(other.gameObject);
+    }
+
+    // Para projetos 3D (Collider e Rigidbody)
+    private void OnTriggerEnter(Collider other)
+    {
+        HandlePlayerCollision(other.gameObject);
+    }
+
+    /// <summary>
+    /// Processa o impacto com o jogador, subtrai uma vida e reseta sua posição.
+    /// </summary>
+    private void HandlePlayerCollision(GameObject hitObject)
+    {
+        // Garante que atinja apenas o Player e apenas 1 vez por ataque
+        if (!hasHitPlayerThisAttack && hitObject.CompareTag("Player"))
+        {
+            hasHitPlayerThisAttack = true;
+
+            // 1. Reduz 1 vida no GameController
+            if (GameController.Instance != null)
+            {
+                GameController.Instance.LoseLife();
+            }
+
+            // 2. Reseta a posição do player via GameLoopManager
+            if (GameLoopManager.Instance != null)
+            {
+                GameLoopManager.Instance.ResetPlayerPosition();
+            }
+            else
+            {
+                // Fallback caso acesse diretamente a transform do player
+                hitObject.transform.position = new Vector3(0f, -4f, 0f);
+            }
+
+            Debug.Log("Língua atingiu a formiga no momento de impacto! -1 Vida e posição resetada.");
+        }
+    }
+
+    #endregion
 }

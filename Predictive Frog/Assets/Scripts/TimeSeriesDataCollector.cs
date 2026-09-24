@@ -102,6 +102,12 @@ public class TimeSeriesDataCollector : MonoBehaviour
         // Incrementa o contador de rounds e libera para a próxima rodada
         currentRound++;
         isRoundActive = false;
+
+        // Notifica o GameLoopManager que o round acabou para iniciar o modo Learning
+        if (GameLoopManager.Instance != null)
+        {
+            GameLoopManager.Instance.OnRoundFinished();
+        }
     }
 
     private void CaptureDataPoint()
@@ -115,6 +121,17 @@ public class TimeSeriesDataCollector : MonoBehaviour
         // Adiciona a amostra à lista
         PlayerDataPoint dataPoint = new PlayerDataPoint(globalTimeStamp, playerPos);
         timeSeriesData.Add(dataPoint);
+    }
+
+    /// <summary>
+    /// Permite que o GameLoopManager inicie o round via código.
+    /// </summary>
+    public void StartRoundManually()
+    {
+        if (!isRoundActive)
+        {
+            StartCoroutine(StartRoundRoutine());
+        }
     }
 
     /// <summary>
