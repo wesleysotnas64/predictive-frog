@@ -22,6 +22,7 @@ public class TimeSeriesDataCollector : MonoBehaviour
     [Header("Referências")]
     [Tooltip("Transform do Player (Formiga) para capturar a posição.")]
     [SerializeField] private Transform playerTransform;
+    [SerializeField] private UIController uiController;
 
     [Header("Configurações do Round e Amostragem")]
     [Tooltip("Tempo total de cada round em segundos (Ex: 10s).")]
@@ -74,11 +75,22 @@ public class TimeSeriesDataCollector : MonoBehaviour
         {
             currentRoundTimer += Time.deltaTime;
 
+            if (uiController != null)
+            {
+                uiController.UpdateRoundUI(currentRoundTimer, roundTime, currentRound);
+            }
+
             // Garante que a amostragem ocorra com a precisão de 'detectTime' (ex: a cada 0.1s)
             if (currentRoundTimer >= nextSampleTime)
             {
                 CaptureDataPoint();
                 nextSampleTime += detectTime;
+            }
+
+            // Garante a chamada final ao zerar o tempo para disparar o acionamento do "Learning"
+            if (uiController != null)
+            {
+                uiController.UpdateRoundUI(currentRoundTimer, roundTime, currentRound);
             }
 
             yield return null; // Aguarda o próximo frame
