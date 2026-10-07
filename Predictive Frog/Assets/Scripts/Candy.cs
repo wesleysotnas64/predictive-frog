@@ -2,15 +2,8 @@ using UnityEngine;
 
 public class Candy : MonoBehaviour
 {
-    [Header("Limites Fixos de Spawn")]
-    [SerializeField] private float minX = -8f;
-    [SerializeField] private float maxX = 8f;
-    [SerializeField] private float minY = -4f;
-    [SerializeField] private float maxY = 0f;
-
     [Header("Tags")]
     [SerializeField] private string playerTag = "Player";
-    [SerializeField] private string candyTag = "Candy";
 
     [Header("Componentes e Propriedades")]
     [SerializeField] private SpriteRenderer spriteRenderer;
@@ -81,37 +74,14 @@ public class Candy : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        // 1. Se colidir com o Player: o doce é destruído
         if (other.CompareTag(playerTag))
         {
             CollectCandy();
-            return;
         }
-
-        // 2. Se colidir com outro Doce ao nascer: reposiciona no limite definido
-        if (other.CompareTag(candyTag))
-        {
-            RepositionCandy();
-        }
-    }
-
-    /// <summary>
-    /// Reposiciona o doce dentro dos limites X [-8, 8] e Y [-4, 0]
-    /// </summary>
-    public void RepositionCandy()
-    {
-        float randomX = Random.Range(minX, maxX);
-        float randomY = Random.Range(minY, maxY);
-
-        transform.position = new Vector3(randomX, randomY, 0f);
-
-        // Altera a cor e reatribui o valor para uma nova combinação aleatória
-        ApplyRandomCandyColor();
     }
 
     private void CollectCandy()
     {
-        // Soma os pontos no GameController
         if (GameController.Instance != null)
         {
             GameController.Instance.AddPoints(scoreValue);
@@ -119,9 +89,6 @@ public class Candy : MonoBehaviour
         Destroy(gameObject);
     }
 
-    /// <summary>
-    /// Retorna o valor de pontuação atribuído a este doce.
-    /// </summary>
     public int GetCandyValue()
     {
         return scoreValue;
