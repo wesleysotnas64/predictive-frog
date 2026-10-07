@@ -94,6 +94,7 @@ public class GameLoopManager : MonoBehaviour
     /// </summary>
     private void StartNextRound()
     {
+        KalmanPredictor.Instance.ResetFilter();
         currentState = GameState.RoundActive;
 
         // Oculta a mensagem central ao iniciar a partida

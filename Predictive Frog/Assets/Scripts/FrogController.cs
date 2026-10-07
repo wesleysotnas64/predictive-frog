@@ -77,7 +77,8 @@ public class FrogController : MonoBehaviour
             yield return new WaitForSeconds(randomDelay);
 
             // Executa o disparo de teste
-            ExecuteRandomAttack();
+            // ExecuteRandomAttack();
+            Attack();
         }
     }
 
@@ -96,5 +97,14 @@ public class FrogController : MonoBehaviour
         Debug.Log($"[FrogController] Disparando língua para alvo de teste: {randomTarget}");
 
         tongueScript.LaunchAttack(randomTarget);
+    }
+
+    private void Attack()
+    {
+        if (tongueScript == null) return;
+
+        Vector2 predictPosition = KalmanPredictor.Instance.PredictFuturePosition(0.1f);
+
+        tongueScript.LaunchAttack(predictPosition);
     }
 }

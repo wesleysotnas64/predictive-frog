@@ -121,6 +121,7 @@ public class TimeSeriesDataCollector : MonoBehaviour
         // Adiciona a amostra à lista
         PlayerDataPoint dataPoint = new PlayerDataPoint(globalTimeStamp, playerPos);
         timeSeriesData.Add(dataPoint);
+        KalmanPredictor.Instance.UpdateState(playerPos);
     }
 
     /// <summary>

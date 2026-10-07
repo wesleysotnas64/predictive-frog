@@ -210,6 +210,53 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!1 &134531196
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 134531197}
+  - component: {fileID: 134531198}
+  m_Layer: 0
+  m_Name: KalmanPredictor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &134531197
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 134531196}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &134531198
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 134531196}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e7c0e70e9da4484dbae915d5992572d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KalmanPredictor
+  dt: 0.1
+  processNoise: 0.1
+  measurementNoise: 0.05
 --- !u!1 &234701890
 GameObject:
   m_ObjectHideFlags: 0
@@ -1772,6 +1819,8 @@ MonoBehaviour:
   maxX: 8
   minY: -4
   maxY: 0
+  minDistanceFromPlayer: 1.5
+  minDistanceBetweenCandies: 0.8
   activeCandies: []
 --- !u!1 &715630132
 GameObject:
@@ -2303,7 +2352,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4df75d8acd10e424bbd7a1633daf6972, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMove
-  speed: 2.5
+  speed: 5
   upLimit: 0
   downLimit: -4
   horizontalLimit: 8
@@ -3365,7 +3414,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 20.5
+  m_fontSize: 20.85
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -3593,7 +3642,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 20.5
+  m_fontSize: 20.85
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -4965,3 +5014,4 @@ SceneRoots:
   - {fileID: 1892760449}
   - {fileID: 1099017789}
   - {fileID: 1066310652}
+  - {fileID: 134531197}
